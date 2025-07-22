@@ -31,7 +31,7 @@ def handle_message(message):
     if text.startswith('/save'):
         # Use save function
         print(f"Comando /save recibido en chat {chat_id} con mensaje: {text}")
-        save_expense(text, supabase)
+        save_expense(text, supabase, chat_id)
     elif text.startswith('/check'):
         print(f"Comando /check recibido en chat {chat_id} con mensaje: {text}")
         curated_text = text[len('/check'):].strip()

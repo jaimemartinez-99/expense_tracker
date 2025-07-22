@@ -1,6 +1,4 @@
 import os
-import re
-import json
 import requests
 from loguru import logger
 from fastapi import HTTPException
@@ -21,7 +19,7 @@ def convert_text_to_function(text):
     - id (autogenerado)
     - tipo (texto): indica el tipo de gasto (por ejemplo, restaurante, cena, regalo, perfume, etc.)
     - total (numérico): coste total del gasto
-    - created_at (fecha): fecha en formato año-mes-día cuando se realizó el gasto
+    - created_at (fecha): fecha en formato 'YYYY-MM-DD' cuando se realizó el gasto
 
     El objetivo es que, dado un texto descriptivo como "gastos en restaurantes del mes de julio", DeepSeek genere una consulta SQL para PostgreSQL que recupere la información solicitada desde la tabla.
 
@@ -36,6 +34,8 @@ def convert_text_to_function(text):
     La tabla se llama gastos.
     
     No uses ilike, el nombre de columna que se da siempre es el correcto. Debes usar from.
+    
+    Para filtrar por la columna created_at por un mes y año concretos, no uses .eq("created_at", año, month: mes) porque eso no es válido. En su lugar, usa un rango de fechas
     
     Es muy importante no incluir mas parte de codigo que lo respectivo al response.
     

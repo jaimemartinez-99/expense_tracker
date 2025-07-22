@@ -1,35 +1,44 @@
-import os
-import ast
-
 from datetime import datetime
 from telegram_send_functions import send_message
 
-def save_expense(text, supabase_client):
-    # Text example: "/save comida 12.50 2025-07-21"
+def save_expense(text, supabase_client, chat_id):
     try:
         parts = text.strip().split()
-        # parts[0] = "/save"
-        # parts[1] = tipo
-        # parts[2] = total
-        # parts[3] = fecha
 
         if len(parts) != 4:
-            print("Error: Formato incorrecto. Usa /save tipo total fecha")
+            error_message = "❌ Formato incorrecto. Usa: /save tipo total fecha (ej. /save comida 12.50 21072025)"
+            print(error_message)
+            send_message(chat_id, error_message)
             return
 
         _, tipo, total_str, fecha_str = parts
 
-        total = float(total_str)
-
-        if len(fecha_str) != 8:
-            print("Error: La fecha debe tener formato ddmmyyyy, ejemplo 21072025")
+        try:
+            total = float(total_str)
+            if total <= 0:
+                raise ValueError("El total debe ser mayor que 0")
+        except ValueError:
+            error_message = "❌ Total inválido. Debe ser un número mayor que 0 (ej. 12.50)"
+            print(error_message)
+            send_message(chat_id, error_message)
             return
 
-        day = int(fecha_str[:2])
-        month = int(fecha_str[2:4])
-        year = int(fecha_str[4:8])
+        if len(fecha_str) != 8 or not fecha_str.isdigit():
+            error_message = "❌ Fecha inválida. Usa formato ddmmyyyy (ej. 21072025)"
+            print(error_message)
+            send_message(chat_id, error_message)
+            return
 
-        fecha = datetime(year, month, day)
+        try:
+            day = int(fecha_str[:2])
+            month = int(fecha_str[2:4])
+            year = int(fecha_str[4:8])
+            fecha = datetime(year, month, day)
+        except ValueError:
+            error_message = "❌ Fecha inválida. Revisa si el día o el mes son correctos."
+            print(error_message)
+            send_message(chat_id, error_message)
+            return
 
         response = supabase_client.table('gastos').insert({
             'tipo': tipo,
@@ -37,16 +46,20 @@ def save_expense(text, supabase_client):
             'created_at': fecha.isoformat()
         }).execute()
 
-        if response:
-            telegram_message = f"Gasto guardado: {tipo}, {total}, {fecha_str}"
-            print(telegram_message)
-            send_message(os.environ['CHAT_ID'],telegram_message)
+        if response.data:
+            confirmation = f"✅ Gasto guardado:\nTipo: {tipo}\nTotal: {total:.2f}€\nFecha: {fecha.strftime('%d/%m/%Y')}"
+            print(confirmation)
+            send_message(chat_id, confirmation)
             return True
         else:
-            print(f"Error guardando gasto: {response.data}")
+            error_message = f"❌ Error guardando gasto. Respuesta: {response}"
+            print(error_message)
+            send_message(chat_id, error_message)
 
     except Exception as e:
-        print(f"Error procesando save_expense: {e}")
+        error_message = f"❌ Error inesperado en save_expense: {e}"
+        print(error_message)
+        send_message(chat_id, error_message)
 
 def clean_code_block(text):
     # Remove markdown
