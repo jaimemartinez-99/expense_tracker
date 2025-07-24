@@ -50,6 +50,3 @@ async def telegram_webhook(req: Request):
 @app.get("/")
 def root():
     return {"message": "Bot is running!"}
-
-if __name__ == "__main__":
-    uvicorn.run("telegram_functions:app", host="0.0.0.0", port=8000, reload=True)
