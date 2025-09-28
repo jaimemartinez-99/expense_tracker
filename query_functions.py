@@ -73,7 +73,10 @@ def clean_code_block(text):
 def function_executor(generated_code, supabase_client):
     cleaned_code = clean_code_block(generated_code)
     #cleaned_code = ast.literal_eval(f'"{cleaned_code}"')
-    local_vars = {"supabase": supabase_client, "datetime": __import__('datetime')}
+    local_vars = {
+        "supabase": supabase_client,
+        "datetime": datetime
+    }
     exec(cleaned_code, globals(), local_vars)
     response = local_vars.get("response")
     return response
@@ -81,13 +84,23 @@ def function_executor(generated_code, supabase_client):
 def process_query_result(query_result):
     total_sumado = 0
     mensaje = ""
+    try:
+        if not query_result or not query_result.data:
+            return "No se encontraron resultados."
 
-    for gasto in query_result.data:
-        tipo = gasto['tipo']
-        total = gasto['total']
-        fecha = gasto['created_at']
-        total_sumado += total
-        mensaje += f"Tipo: {tipo}, Total: {total:.2f}, Fecha: {fecha}\n"
+        for gasto in query_result.data:
+            tipo = gasto.get('tipo', 'Desconocido')
+            total = gasto.get('total', 0)
+            fecha = gasto.get('created_at', 'Sin fecha')
+            total_sumado += total
+            mensaje += f"Tipo: {tipo}, Total: {total:.2f}, Fecha: {fecha}\n"
+
+        mensaje += f"\nTotal acumulado: {total_sumado:.2f}"
+
+    except Exception as e:
+        mensaje = f"La query ha generado un error: {str(e)}"
+
+    return mensaje
 
     mensaje += f"\nTotal acumulado: {total_sumado:.2f}"
     return mensaje

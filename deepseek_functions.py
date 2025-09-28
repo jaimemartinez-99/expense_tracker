@@ -39,6 +39,8 @@ def convert_text_to_function(text):
     
     Es muy importante no incluir mas parte de codigo que lo respectivo al response.
     
+    Si no se indica lo contrario, las búsquedas para la columna created_at deben ser para el año actual, es decir, 2025
+    
     
     """
 
