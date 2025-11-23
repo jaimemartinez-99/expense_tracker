@@ -5,13 +5,13 @@ def save_expense(text, supabase_client, chat_id):
     try:
         parts = text.strip().split()
 
-        if len(parts) != 4:
+        if len(parts) != 5:
             error_message = "❌ Formato incorrecto. Usa: /save tipo total fecha (ej. /save comida 12.50 21072025)"
             print(error_message)
             send_message(chat_id, error_message)
             return
 
-        _, tipo, total_str, fecha_str = parts
+        _, tipo, detalle, total_str, fecha_str = parts
 
         try:
             total = float(total_str)
@@ -42,12 +42,13 @@ def save_expense(text, supabase_client, chat_id):
 
         response = supabase_client.table('gastos').insert({
             'tipo': tipo,
+            'detalle': detalle,
             'total': total,
             'created_at': fecha.isoformat()
         }).execute()
 
         if response.data:
-            confirmation = f"✅ Gasto guardado:\nTipo: {tipo}\nTotal: {total:.2f}€\nFecha: {fecha.strftime('%d/%m/%Y')}"
+            confirmation = f"✅ Gasto guardado:\nTipo: {tipo}\nDetalle: {detalle}\nTotal: {total:.2f}€\nFecha: {fecha.strftime('%d/%m/%Y')}"
             print(confirmation)
             send_message(chat_id, confirmation)
             return True
@@ -90,10 +91,11 @@ def process_query_result(query_result):
 
         for gasto in query_result.data:
             tipo = gasto.get('tipo', 'Desconocido')
+            detalle = gasto.get('detalle', 'Sin detalle')
             total = gasto.get('total', 0)
             fecha = gasto.get('created_at', 'Sin fecha')
             total_sumado += total
-            mensaje += f"Tipo: {tipo}, Total: {total:.2f}, Fecha: {fecha}\n"
+            mensaje += f"Tipo: {tipo}, Detalle: {detalle}, Total: {total:.2f}, Fecha: {fecha}\n"
 
         mensaje += f"\nTotal acumulado: {total_sumado:.2f}"
 

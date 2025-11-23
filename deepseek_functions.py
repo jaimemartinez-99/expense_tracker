@@ -18,6 +18,7 @@ def convert_text_to_function(text):
     La tabla tiene las siguientes columnas:
     - id (autogenerado)
     - tipo (texto): indica el tipo de gasto (por ejemplo, restaurante, cena, regalo, perfume, etc.)
+    - detalle (texto): descripción del gasto
     - total (numérico): coste total del gasto
     - created_at (fecha): fecha en formato 'YYYY-MM-DD' cuando se realizó el gasto
 
@@ -41,16 +42,37 @@ def convert_text_to_function(text):
     
     Si no se indica lo contrario, las búsquedas para la columna created_at deben ser para el año actual, es decir, 2025
     
-    
+    Si se indica que se quiere el total agrupado por tipo, se ha de llamar a gastos_agrupados_por_mes_y_year y añadir como parametro el año elegido por el usuario
     """
-
+    optimized_prompt = f"""
+    Estoy utilizando DeepSeek para convertir un texto en lenguaje natural proporcionado por el usuario en una consulta SQL ejecutada mediante el cliente de Supabase en Python.
+    
+    La tabla se llama **gastos** y tiene las siguientes columnas:
+    - id (autogenerado)
+    - tipo (texto)
+    - detalle (texto)
+    - total (numérico)
+    - created_at (fecha con formato 'YYYY-MM-DD')
+    
+    Quiero que DeepSeek genere **solo el fragmento de código Python** que construya la consulta usando el cliente oficial de Supabase.  
+    No debe incluir imports, conexión, prints, variables adicionales ni explicaciones: únicamente la línea o bloque correspondiente al `response = ...`.
+    
+    Reglas importantes:
+    1. Si el usuario no indica el año, debe usarse el año actual: **2025**.
+    2. Para filtrar por mes/año, **no usar `.eq("created_at", ...)`**. Siempre usar rangos de fechas (`.gte()` y `.lte()`).
+    3. No usar `ilike`. Los nombres de columnas siempre coinciden con lo que pide el usuario.
+    4. La tabla siempre es `gastos` y la consulta se hace con `.from_("gastos")`.
+    5. Si el usuario pide resultados **agrupados por tipo**, se debe llamar al RPC: gastos_agrupados_por_year, enviando como parámetro el año solicitado **year**, si no se especifica, **2025**.
+    6. La respuesta generada debe consistir EXCLUSIVAMENTE en el código Python que asigna la variable `response`.
+    Finalmente, convierte **{text}** en el código Python correspondiente cumpliendo estas reglas. La salida debe ser solamente el fragmento de código del `response`.
+    """
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json",
     }
     data = {
         "model": "deepseek-chat",
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": [{"role": "user", "content": optimized_prompt}],
     }
 
     response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
