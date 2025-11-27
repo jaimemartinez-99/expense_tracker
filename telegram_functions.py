@@ -17,10 +17,19 @@ def send_message(chat_id, text):
 
 def get_updates(offset=None):
     url = f"{BASE_URL}/getUpdates"
-    params = {'timeout': 100, 'offset': offset}
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        return response.json()
+    params = {
+        'timeout': 600,
+        'offset': offset
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=610)
+        if response.status_code == 200:
+            return response.json()
+
+    except requests.exceptions.RequestException as e:
+        print("Error de conexión con Telegram:", e)
+
     return None
 
 def handle_message(message):

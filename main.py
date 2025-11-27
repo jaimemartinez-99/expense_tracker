@@ -12,7 +12,6 @@ def main():
                 offset = update['update_id'] + 1
                 if 'message' in update:
                     handle_message(update['message'])
-        time.sleep(1)
 
 if __name__ == '__main__':
     main()
