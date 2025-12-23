@@ -1,8 +1,11 @@
 import os
 import requests
 from supabase import create_client, Client
-from query_functions import save_expense, function_executor, process_query_result
+from supabase_functions.query_functions import save_expense, save_entry, function_executor, process_query_result
 from deepseek_functions import convert_text_to_function
+from graph_functions.df_functions import generate_final_dataframe
+from graph_functions.graph_functions import create_graph
+
 telegram_token = os.environ['TELEGRAM_TOKEN']
 BASE_URL = f"https://api.telegram.org/bot{telegram_token}"
 SUPABASE_URL = os.environ['SUPABASE_URL']
@@ -14,6 +17,24 @@ def send_message(chat_id, text):
     payload = {'chat_id': chat_id, 'text': text}
     requests.post(url, data=payload)
 
+def send_graph(chat_id, option, graph):
+    if option == "balance":
+        caption = "Gráfico de Balance"
+    elif option == "gastos":
+        caption = "Gráfico de Gastos"
+    else:
+        caption = "Gráfico de Ingresos"
+
+    url = f"{BASE_URL}/sendPhoto"
+
+    files = {
+        'photo': ('grafico.png', graph, 'image/png')
+    }
+    data = {
+        'chat_id': chat_id,
+        'caption': caption
+    }
+    requests.post(url, files=files, data=data)
 
 def get_updates(offset=None):
     url = f"{BASE_URL}/getUpdates"
@@ -37,10 +58,15 @@ def handle_message(message):
     text = text.lower()
     chat_id = message['chat']['id']
 
-    if text.startswith('/save'):
+    if text.startswith('/savexpense'):
         # Use save function
-        print(f"Comando /save recibido en chat {chat_id} con mensaje: {text}")
+        print(f"Comando /savexpense recibido en chat {chat_id} con mensaje: {text}")
         save_expense(text, supabase, chat_id)
+
+    elif text.startswith('/saventry'):
+        print(f"Comando /saventry recibido en chat {chat_id} con mensaje: {text}")
+        save_entry(text, supabase, chat_id)
+
     elif text.startswith('/check'):
         print(f"Comando /check recibido en chat {chat_id} con mensaje: {text}")
         curated_text = text[len('/check'):].strip()
@@ -49,5 +75,10 @@ def handle_message(message):
         telegram_message = process_query_result(query_result)
         send_message(chat_id, telegram_message)
 
+    elif text.startswith('/graph'):
+        print(f"Comando /graph recibido en chat {chat_id} con mensaje: {text}")
+        option, df = generate_final_dataframe(text, supabase)
+        graph = create_graph(option, df)
+        send_graph(chat_id, option, graph)
     else:
         print(f"Mensaje recibido en chat {chat_id}: {text}")

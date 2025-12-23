@@ -1,5 +1,5 @@
-import time
-from telegram_functions import get_updates, handle_message
+from telegram_functions.telegram_functions import get_updates, handle_message
+
 
 def main():
     offset = None
