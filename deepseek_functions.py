@@ -42,6 +42,7 @@ def convert_text_to_function(text):
     6. Si el usuario pide gastos **agrupados por tipo**, se debe llamar al RPC: gastos_agrupados_por_year, enviando como parámetro el año solicitado **year**, si no se especifica, **2025**.
     7. Si el usuario pide ingresos **agrupados por tipo**, se debe llamar al RPC: ingresos_agrupados_por_year, enviando como parámetro el año solicitado **year**, si no se especifica, **2025**.
     8. La respuesta generada debe consistir EXCLUSIVAMENTE en el código Python que asigna la variable `response`.
+    9. Todas las consultas DEBEN finalizar obligatoriamente con `.execute()`.
     Finalmente, convierte **{text}** en el código Python correspondiente cumpliendo estas reglas. La salida debe ser solamente el fragmento de código del `response`.
     """
     headers = {

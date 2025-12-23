@@ -13,6 +13,7 @@ def setCommands():
     commands = [
         {"command": "savexpense", "description": "Guardar un gasto: /saveExpense producto burbujas 2.99 24112025"},
         {"command": "saventry", "description": "Guardar un beneficio: /saveEntry perfume tygar 35 25062025"},
+        {"command": "graph", "description": "Mostrar un grafico de balance, gastos o ingresos: /graph {option} m{month} y{year}"},
         {"command": "check", "description": "Consultar tus gastos: /check {pregunta en lenguaje natural}"}
     ]
 
